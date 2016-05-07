@@ -1,5 +1,26 @@
 var stateData = JSON.parse(JSON.stringify(require('./state.json')));
 
+// Load external file with states and associated tribes
+var stateTribeMappings = require('./state_mappings.js');
+
+// Get all states that are associated with tribal names
+var statesFromTribes = Object.keys(stateTribeMappings.mappings());
+
+// Create two separate FeatureCollections
+var stateNonTribeLayer = {features: [], type: "FeatureCollection"};
+var stateTribeLayer = {features: [], type: "FeatureCollection"};
+
+// Conditionally put feature objects into stateNonTribeLayer or stateTribeLayer FeatureCollections
+var i;
+for(i=0; i<stateData.features.length; i+=1) {
+  console.log(stateData.features[i].properties.name)
+  if (statesFromTribes.indexOf(stateData.features[i].properties.name) == -1) {
+    stateNonTribeLayer.features.push(stateData.features[i]);
+  } else {
+    stateTribeLayer.features.push(stateData.features[i]);
+  };
+};
+
 mapboxgl.accessToken = 'pk.eyJ1IjoiZHlsYW5sZXdpczg5IiwiYSI6ImNpbnYxN290dDEyc3d1Nmx5NXd5NHhqYXMifQ.cOH98d9HW4pAC2jaaTV42g';
 var map = new mapboxgl.Map({
     container: 'map', // container id
@@ -10,27 +31,59 @@ var map = new mapboxgl.Map({
 });
 
 map.on('load', function () {
-    // Add marker data as a new GeoJSON source.
+    // Load all the states
     map.addSource('states', {
         'type': 'geojson',
         'data': stateData
     });
 
-        // Add a layer showing the markers.
+    // Load states without tribal names
+    map.addSource('nonTribalStates', {
+        'type': 'geojson',
+        'data': stateNonTribeLayer
+    });
+
+    // Load states with tribal names
+    map.addSource('tribalStates', {
+        'type': 'geojson',
+        'data': stateTribeLayer
+    });
+
+    // Create base layer of all states that is invisible
     map.addLayer({
         'id': 'states-layer',
         'type': 'fill',
         'source': 'states',
         'paint': {
+            'fill-color': 'rgba(0, 128, 128, 0.0)',
+            'fill-outline-color': 'rgba(0, 128, 128, 0.0)'
+        }
+    });
+
+    // Create layer of states without tribal names
+    map.addLayer({
+        'id': 'non-tribal-states-layer',
+        'type': 'fill',
+        'source': 'nonTribalStates',
+        'paint': {
             'fill-color': 'rgba(0, 128, 128, 0.4)',
             'fill-outline-color': 'rgba(0, 128, 128, 1)'
         }
     });
+
+    // Create layer of states with tribal names
+    map.addLayer({
+        'id': 'tribal-states-layer',
+        'type': 'fill',
+        'source': 'tribalStates',
+        'paint': {
+            'fill-color': 'rgba(255, 0, 0, 0.4)',
+            'fill-outline-color': 'rgba(255, 0, 0, 1)'
+        }
+    });
 });
 
-// When a click event occurs near a marker icon, open a popup at the location of
-// the feature, with description HTML from its properties.
-
+// Allow full state layer to be clickable and display state name
 map.on('click', function (e) {
     var features = map.queryRenderedFeatures(e.point, { layers: ['states-layer'] });
 
