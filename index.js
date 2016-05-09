@@ -31,11 +31,13 @@ var map = new mapboxgl.Map({
 });
 
 map.on('load', function () {
+/*
     // Load all the states
     map.addSource('states', {
         'type': 'geojson',
         'data': stateData
     });
+*/
 
     // Load states without tribal names
     map.addSource('nonTribalStates', {
@@ -48,7 +50,7 @@ map.on('load', function () {
         'type': 'geojson',
         'data': stateTribeLayer
     });
-
+/*
     // Create base layer of all states that is invisible
     map.addLayer({
         'id': 'states-layer',
@@ -59,7 +61,7 @@ map.on('load', function () {
             'fill-outline-color': 'rgba(0, 128, 128, 0.0)'
         }
     });
-
+*/
     // Create layer of states without tribal names
     map.addLayer({
         'id': 'non-tribal-states-layer',
@@ -85,7 +87,7 @@ map.on('load', function () {
 
 // Allow full state layer to be clickable and display state name
 map.on('click', function (e) {
-    var features = map.queryRenderedFeatures(e.point, { layers: ['states-layer'] });
+    var features = map.queryRenderedFeatures(e.point, { layers: ['non-tribal-states-layer', 'tribal-states-layer'] });
 
     if (!features.length) {
         return;
