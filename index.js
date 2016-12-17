@@ -1,3 +1,5 @@
+var _ = require('lodash');
+
 var stateData = JSON.parse(JSON.stringify(require('./state.json')));
 
 // Load external file with states and associated tribes
@@ -11,15 +13,14 @@ var stateNonTribeLayer = {features: [], type: "FeatureCollection"};
 var stateTribeLayer = {features: [], type: "FeatureCollection"};
 
 // Conditionally put feature objects into stateNonTribeLayer or stateTribeLayer FeatureCollections
-var i;
-for(i=0; i<stateData.features.length; i+=1) {
-  console.log(stateData.features[i].properties.name)
-  if (statesFromTribes.indexOf(stateData.features[i].properties.name) == -1) {
-    stateNonTribeLayer.features.push(stateData.features[i]);
+
+_.forEach(stateData.features, function(feature) {
+  if (_.includes(statesFromTribes, feature.properties.name)) {
+    stateTribeLayer.features.push(feature);
   } else {
-    stateTribeLayer.features.push(stateData.features[i]);
+    stateNonTribeLayer.features.push(feature);
   };
-};
+});
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiZHlsYW5sZXdpczg5IiwiYSI6ImNpbnYxN290dDEyc3d1Nmx5NXd5NHhqYXMifQ.cOH98d9HW4pAC2jaaTV42g';
 var map = new mapboxgl.Map({
@@ -31,12 +32,6 @@ var map = new mapboxgl.Map({
 });
 
 map.on('load', function () {
-    // Load all the states
-    map.addSource('states', {
-        'type': 'geojson',
-        'data': stateData
-    });
-
     // Load states without tribal names
     map.addSource('nonTribalStates', {
         'type': 'geojson',
@@ -47,17 +42,6 @@ map.on('load', function () {
     map.addSource('tribalStates', {
         'type': 'geojson',
         'data': stateTribeLayer
-    });
-
-    // Create base layer of all states that is invisible
-    map.addLayer({
-        'id': 'states-layer',
-        'type': 'fill',
-        'source': 'states',
-        'paint': {
-            'fill-color': 'rgba(0, 128, 128, 0.0)',
-            'fill-outline-color': 'rgba(0, 128, 128, 0.0)'
-        }
     });
 
     // Create layer of states without tribal names
@@ -85,7 +69,7 @@ map.on('load', function () {
 
 // Allow full state layer to be clickable and display state name
 map.on('click', function (e) {
-    var features = map.queryRenderedFeatures(e.point, { layers: ['states-layer'] });
+    var features = map.queryRenderedFeatures(e.point, { layers: ['non-tribal-states-layer', 'tribal-states-layer'] });
 
     if (!features.length) {
         return;
@@ -102,6 +86,6 @@ map.on('click', function (e) {
 // Use the same approach as above to indicate that the symbols are clickable
 // by changing the cursor style to 'pointer'.
 map.on('mousemove', function (e) {
-    var features = map.queryRenderedFeatures(e.point, { layers: ['states-layer'] });
+    var features = map.queryRenderedFeatures(e.point, { layers: ['non-tribal-states-layer', 'tribal-states-layer'] });
     map.getCanvas().style.cursor = (features.length) ? 'pointer' : 'not-allowed';
 });

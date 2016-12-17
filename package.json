@@ -6,7 +6,7 @@
   "dependencies": {
     "browserify": "^13.0.0",
     "budo": "^8.2.2",
-    "lodash": "^4.11.2"
+    "lodash": "^4.12.0"
   },
   "devDependencies": {},
   "scripts": {
